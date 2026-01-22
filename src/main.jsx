@@ -57,6 +57,13 @@ function TabButton({ id, label, active, onClick }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function reformulerAvecClaude(contexte, travaux, pointsAttention, typeOuvrage) {
+  // 1. Récupération sécurisée de ta clé API configurée dans Vercel
+  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
+  
+  // Si la clé n'est pas encore configurée, l'app utilise le mode de secours
+  if (!apiKey) return null;
+
+  // 2. TES CONSIGNES PRÉCISES (ON NE CHANGE RIEN ICI)
   const prompt = `Tu es un rédacteur technique professionnel pour AluGlass, entreprise spécialisée dans les vérandas, pergolas et carports.
 
 TEXTE BRUT À REFORMULER :
@@ -95,24 +102,36 @@ Réponds UNIQUEMENT avec un JSON valide (sans markdown, sans backticks) au forma
   "conclusion": "conclusion professionnelle générée"
 }`;
 
+  // 3. LA LOGIQUE D'ENVOI À CLAUDE
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "dangerouslyAllowBrowser": "true" 
+      },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-3-5-sonnet-20240620", 
         max_tokens: 2000,
         messages: [{ role: "user", content: prompt }]
       })
     });
 
     const data = await response.json();
+    
+    // On extrait le texte de la réponse de Claude
     const textContent = data.content?.find(item => item.type === "text")?.text || "";
+    
+    // On nettoie pour être sûr d'avoir un JSON propre
     const cleanJson = textContent.replace(/```json|```/g, "").trim();
+    
+    // On renvoie le résultat à ton application
     return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Erreur API Claude:", error);
-    return null;
+    return null; // Déclenche le mode fallback local en cas de bug
   }
 }
 
