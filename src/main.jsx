@@ -55,15 +55,14 @@ function TabButton({ id, label, active, onClick }) {
 // ═══════════════════════════════════════════════════════════════════════════
 // FONCTION DE REFORMULATION VIA API CLAUDE
 // ═══════════════════════════════════════════════════════════════════════════
-
 async function reformulerAvecClaude(contexte, travaux, pointsAttention, typeOuvrage) {
-  // 1. Récupération sécurisée de ta clé API configurée dans Vercel
+  // 1. Récupération de la clé API configurée dans Vercel
   const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
   
-  // Si la clé n'est pas encore configurée, l'app utilise le mode de secours
+  // Si la clé n'est pas là, on bascule directement sur ton mode local (fallback)
   if (!apiKey) return null;
 
-  // 2. TES CONSIGNES PRÉCISES (ON NE CHANGE RIEN ICI)
+  // 2. TES CONSIGNES (CONSERVÉES À 100%)
   const prompt = `Tu es un rédacteur technique professionnel pour AluGlass, entreprise spécialisée dans les vérandas, pergolas et carports.
 
 TEXTE BRUT À REFORMULER :
@@ -102,15 +101,15 @@ Réponds UNIQUEMENT avec un JSON valide (sans markdown, sans backticks) au forma
   "conclusion": "conclusion professionnelle générée"
 }`;
 
-  // 3. LA LOGIQUE D'ENVOI À CLAUDE
+  // 3. ENVOI SÉCURISÉ À CLAUDE
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "dangerouslyAllowBrowser": "true" 
+        "x-api-key": apiKey, // Ta clé secrète
+        "anthropic-version": "2023-06-01", // Version obligatoire
+        "dangerouslyAllowBrowser": "true" // Permet l'appel direct
       },
       body: JSON.stringify({
         model: "claude-3-5-sonnet-20240620", 
@@ -120,21 +119,16 @@ Réponds UNIQUEMENT avec un JSON valide (sans markdown, sans backticks) au forma
     });
 
     const data = await response.json();
-    
-    // On extrait le texte de la réponse de Claude
     const textContent = data.content?.find(item => item.type === "text")?.text || "";
-    
-    // On nettoie pour être sûr d'avoir un JSON propre
     const cleanJson = textContent.replace(/```json|```/g, "").trim();
-    
-    // On renvoie le résultat à ton application
     return JSON.parse(cleanJson);
   } catch (error) {
     console.error("Erreur API Claude:", error);
-    return null; // Déclenche le mode fallback local en cas de bug
+    return null; // Déclenche automatiquement ta fonction fallback ci-dessous
   }
 }
 
+// TA FONCTION DE SECOURS (CONSERVÉE À 100%)
 function reformulationFallback(contexte, travaux, pointsAttention, typeOuvrage) {
   const cleanText = (text) => {
     if (!text) return '';
@@ -170,7 +164,6 @@ function reformulationFallback(contexte, travaux, pointsAttention, typeOuvrage) 
 
   return { contexte: contexteClean, travaux: travauxClean, pointsAttention: pointsClean, conseilsEntretien: entretien, conseilsUtilisation: utilisation, recommandations, conclusion };
 }
-
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════
@@ -905,12 +898,4 @@ Tel : 02 33 58 12 12 | contact@alu-glass.com | www.alu-glass.com
       </footer>
     </div>
   );
-}
-
-import { createRoot } from 'react-dom/client';
-
-const container = document.getElementById('root');
-if (container) {
-  const root = createRoot(container);
-  root.render(<RapportChantierApp />);
 }
