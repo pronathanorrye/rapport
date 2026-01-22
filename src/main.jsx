@@ -1,3 +1,10 @@
+import React, { useState, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import { FileText, Upload, Save, Download, Trash2, Plus, X, Copy, FolderOpen, File, CheckCircle, AlertCircle, Loader, Edit3 } from 'lucide-react';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTES ET IMAGES
+// ═══════════════════════════════════════════════════════════════════════════
 const LOGO_ALUGLASS = "/logo.png";
 const FOOTER_ALUGLASS = "/footer.png";
 // ═══════════════════════════════════════════════════════════════════════════
