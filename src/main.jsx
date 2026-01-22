@@ -887,3 +887,11 @@ Tel : 02 33 58 12 12 | contact@alu-glass.com | www.alu-glass.com
     </div>
   );
 }
+
+import { createRoot } from 'react-dom/client';
+
+const container = document.getElementById('root');
+if (container) {
+  const root = createRoot(container);
+  root.render(<RapportChantierApp />);
+}
